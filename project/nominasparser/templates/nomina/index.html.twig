@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Parseador de nóminas para Irasa{% endblock %}
+
+{% block body %}
+    <div class="container-contact100" style="background-image: url({{ asset('images/bg-01.jpg') }});">
+        <div class="wrap-contact100">
+            {# TODO - Meter la clase correspondiente en formulario e input type #}
+
+            <span class="contact100-form-title">
+                Parseador de nóminas de Irasa
+            </span>
+
+            {{ form_start(form, {'attr': {'class': 'contact100-form'}}) }}
+
+                <div class="wrap-input100 rs1-wrap-input100 validate-input" data-validate="El fichero es obligatorio">
+                    <span class="label-input100">Introduce el fichero de nóminas *</span>
+                    {{ form_row(form.pdf, {'attr': {'class': 'input100'}}) }}
+                </div>
+
+                <div class="wrap-input100 rs1-wrap-input100 validate-input">
+                    <span class="label-input100">Test, se enviará un mail a {{ test_mail }}</span>
+                    {{ form_row(form.test) }}
+                </div>
+
+                <div class="container-contact100-form-btn">
+                    <div class="wrap-contact100-form-btn">
+                        <div class="contact100-form-bgbtn"></div>
+                        <button class="contact100-form-btn">
+                            Submit
+                        </button>
+                    </div>
+                </div>
+
+            {{ form_end(form) }}
+
+            <div class="input100 resume">
+                {{ log | raw }}
+            </div>
+
+        </div>
+
+    </div>
+
+{% endblock %}

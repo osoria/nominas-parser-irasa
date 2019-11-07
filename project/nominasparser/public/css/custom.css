@@ -1,0 +1,11 @@
+input.input100 {
+    padding-top: 16px;
+}
+div.resume {
+    padding: 10px;
+    font-size: 14px;
+    line-height: 20px;
+}
+div.resume strong {
+    color: black;
+}

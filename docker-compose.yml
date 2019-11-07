@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  miservicio_mysql:
+    image: mysql:5.7
+    environment:
+      - MYSQL_DATABASE=nominasparser
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+    volumes:
+      # Montamos un volumen para MySQL para no perder los datos de bd
+      - ./volumenes/mysql:/var/lib/mysql
+    expose:
+      - 3306
+    ports:
+      - 3306:3306
+
+  miservicio_php:
+    build: .
+    environment:
+      XDEBUG_CONFIG: remote_host=192.168.1.134
+      PHP_IDE_CONFIG: serverName=nominasparser
+    volumes:
+      # Montamos nuestra web desde fuera en el directorio web del contenedor
+      - ./project:/var/www/html
+    expose:
+      - 80
+    ports:
+      - 80:80
+    links:
+      - miservicio_mysql
