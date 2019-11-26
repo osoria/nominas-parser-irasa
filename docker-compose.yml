@@ -19,7 +19,7 @@ services:
   miservicio_php:
     build: .
     environment:
-      XDEBUG_CONFIG: remote_host=192.168.1.134
+      XDEBUG_CONFIG: remote_host=192.168.1.34
       PHP_IDE_CONFIG: serverName=nominasparser
     volumes:
       # Montamos nuestra web desde fuera en el directorio web del contenedor

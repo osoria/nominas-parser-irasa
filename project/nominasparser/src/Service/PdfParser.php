@@ -37,7 +37,6 @@ class PdfParser implements PdfParserInterface
     public function execute(string $path, string $file, bool $test = false): string
     {
         $pdf = $this->parser->parseFile("$path/$file");
-        $this->pdfCut->init("$path/$file");
 
         $pages = $pdf->getPages();
 
@@ -47,9 +46,9 @@ class PdfParser implements PdfParserInterface
             $numPage++;
             $text = $page->getText();
             $parsed = explode(',', $text);
-            $apellidos = trim($parsed[0]);
+            $apellidos = trim(preg_replace('/\t+/', '', $parsed[0]));
             preg_match('/^(.*)$/m', $parsed[1], $matches);
-            $nombre = trim($matches[0]);
+            $nombre = trim(preg_replace('/\t+/', '', $matches[0]));
             $empleado = $this->empleadoRepository->findOneBy(['nombre' => $nombre, 'apellidos' => $apellidos]);
 
             $nombre = ucwords(strtolower($nombre));
@@ -60,9 +59,14 @@ class PdfParser implements PdfParserInterface
                 continue;
             }
 
-            $pdf = $this->pdfCut->cut($numPage);
+            $this->pdfCut->init("$path/$file");
+            $pdfExtracted = $this->pdfCut->cut($numPage);
             $newFile = "$path/$nombre $apellidos.pdf";
-            $pdf->saveAs($newFile);
+            $result = $pdfExtracted->saveAs($newFile);
+
+            if (!$result) {
+                $log .= "<strong>ATENCIÓN:</strong> No se ha podido guardar la nómina $newFile<br/>";
+            }
 
             $emailToSend = $empleado->getEmail();
             if ($test) {
@@ -76,10 +80,6 @@ class PdfParser implements PdfParserInterface
             $this->sendEmail($emailToSend, $newFile, $nombre);
 
             $log .= "Se ha enviado correctamente la nómina a $nombre $apellidos<br/>";
-
-            if ($test) {
-                return $log;
-            }
         }
         return $log;
     }
@@ -92,6 +92,9 @@ class PdfParser implements PdfParserInterface
      */
     public function sendEmail(?string $emailToSend, string $newFile, string $nombre): void
     {
+        if ($_SERVER['APP_ENV'] != 'prod') {
+            return;
+        }
         $email = (new Email())
             ->from($_SERVER['MAILER_SEND_BY'])
             ->to($emailToSend)

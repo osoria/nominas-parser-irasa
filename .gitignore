@@ -1,3 +1,5 @@
 .idea
 volumenes
 project/nominasparser/data/nominas/IRASA*
+project/nominasparser/composer.phar
+project/nominasparser/php72
