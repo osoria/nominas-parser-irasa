@@ -6,6 +6,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "doctrine/annotations": "^1.8",
+        "easycorp/easyadmin-bundle": "^2.3",
         "mikehaertl/php-pdftk": "^0.6.1",
         "smalot/pdfparser": "^0.14.0",
         "symfony/asset": "4.3.*",
