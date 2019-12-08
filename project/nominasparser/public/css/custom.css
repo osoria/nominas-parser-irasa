@@ -9,3 +9,7 @@ div.resume {
 div.resume strong {
     color: black;
 }
+.employes {
+    margin-top: 20px;
+    display: none;
+}

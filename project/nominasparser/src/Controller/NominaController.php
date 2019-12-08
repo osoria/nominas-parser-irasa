@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Form\NominaPdfType;
+use App\Repository\EmpleadoRepository;
 use App\Service\PdfParserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -25,7 +26,7 @@ class NominaController extends AbstractController
     /**
      * @Route("/", name="new")
      */
-    public function index(Request $request)
+    public function index(Request $request, EmpleadoRepository $empleadoRepository)
     {
         $form = $this->createForm(NominaPdfType::class);
         $form->handleRequest($request);
@@ -40,13 +41,17 @@ class NominaController extends AbstractController
                 throw new HttpException(500, 'El fichero PDF no ha sido grabado');
             }
 
-            $log = $this->pdfParser->execute($path, $file, $form['test']->getData());
+            $empleadosSelected = $request->get('empleado');
+
+            $log = $this->pdfParser->execute($path, $file, $form['mode']->getData(), $empleadosSelected);
         }
+
+        $empleados = $empleadoRepository->findAll();
 
         return $this->render('nomina/index.html.twig', [
             'form' => $form->createView(),
             'log' => $log,
-            'test_mail' => $_SERVER['EMAIL_TEST']
+            'empleados' => $empleados
         ]);
     }
 
