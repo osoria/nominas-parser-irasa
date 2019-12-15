@@ -74,7 +74,8 @@ class PdfParser implements PdfParserInterface
             $result = $pdfExtracted->saveAs($newFile);
 
             if (!$result) {
-                $log .= "<strong>ATENCIÓN:</strong> No se ha podido guardar la nómina $newFile<br/>";
+                $log .= "<strong>ATENCIÓN:</strong> No se ha podido guardar la nómina $newFile, por lo que no se ha podido enviar<br/>";
+                continue;
             }
 
             if (!$empleado->getEmail()) {

@@ -37,6 +37,13 @@ class Empleado
         return $this->id;
     }
 
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
     public function getApellidos(): ?string
     {
         return $this->apellidos;
@@ -66,7 +73,7 @@ class Empleado
         return $this->email;
     }
 
-    public function setEmail(string $email): self
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
 

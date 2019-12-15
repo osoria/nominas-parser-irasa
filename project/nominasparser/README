@@ -1,0 +1,4 @@
+- Los tests unitarios se ejecutan:
+./vendor/bin/simple-phpunit --coverage-clover 'reports/clover.xml'
+
+Desde PHPStorm, Tools -> Show Code Coverage Data, para ver el coverage
