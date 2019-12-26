@@ -1,4 +1,5 @@
 .idea
+.DS_Store
 volumenes
 project/nominasparser/data/nominas/IRASA*
 project/nominasparser/composer.phar

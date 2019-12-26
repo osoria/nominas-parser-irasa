@@ -6,9 +6,11 @@ use App\Form\NominaPdfType;
 use App\Repository\EmpleadoRepository;
 use App\Service\PdfParserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class NominaController extends AbstractController
@@ -18,9 +20,15 @@ class NominaController extends AbstractController
      */
     private $pdfParser;
 
-    public function __construct(PdfParserInterface $pdfParser)
+    /**
+     * @var KernelInterface
+     */
+    private $appKernel;
+
+    public function __construct(PdfParserInterface $pdfParser, KernelInterface $appKernel)
     {
         $this->pdfParser = $pdfParser;
+        $this->appKernel = $appKernel;
     }
 
     /**
@@ -56,11 +64,11 @@ class NominaController extends AbstractController
     }
 
     /**
-     * @param \Symfony\Component\Form\FormInterface $form
+     * @param FormInterface $form
      * @return string
      * @throws FileException
      */
-    public function saveNominaFile(\Symfony\Component\Form\FormInterface $form): ?array
+    private function saveNominaFile(FormInterface $form): ?array
     {
         /** @var UploadedFile $nominasFile */
         $nominasFile = $form['pdf']->getData();
@@ -68,7 +76,7 @@ class NominaController extends AbstractController
         if ($nominasFile) {
             $originalFilename = pathinfo($nominasFile->getClientOriginalName(), PATHINFO_FILENAME);
 
-            $folder = "../data/nominas/$originalFilename";
+            $folder = "{$this->appKernel->getProjectDir()}/data/nominas/$originalFilename";
             if (!file_exists($folder)) {
                 mkdir($folder);
             }
