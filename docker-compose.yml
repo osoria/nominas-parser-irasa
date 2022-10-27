@@ -27,6 +27,7 @@ services:
     expose:
       - 80
     ports:
-      - 80:80
+      - 8088:80
+      - 9000:9000
     links:
       - miservicio_mysql

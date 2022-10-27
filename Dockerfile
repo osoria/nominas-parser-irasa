@@ -7,6 +7,8 @@ RUN pecl install xdebug-2.6.0 \
     && docker-php-ext-install mysqli pdo pdo_mysql
 ARG XDEBUG_INI=/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 RUN echo "xdebug.remote_enable = on" >> ${XDEBUG_INI}
+RUN echo "xdebug.idekey = phpstorm" >> ${XDEBUG_INI}
+RUN echo "xdebug.remote_host = docker.for.mac.localhost" >> ${XDEBUG_INI}
 
 # intl
 RUN apt-get -y update \
@@ -16,7 +18,7 @@ RUN apt-get -y update \
 
 # git
 RUN apt-get update && \
-    apt-get upgrade -y && \
+    apt-get upgrade -y --allow-unauthenticated && \
     apt-get install -y git
 
 # opcache
@@ -50,7 +52,7 @@ RUN php -r "if (file_exists('installer')) unlink('installer');"
 
 # symfony cli
 RUN curl -sS https://get.symfony.com/cli/installer | bash
-RUN mv /root/.symfony/bin/symfony /usr/local/bin/symfony
+RUN mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
 
 # Pdftk - para cortar PDFs
 RUN apt-get install -y pdftk
