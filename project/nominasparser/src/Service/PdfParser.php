@@ -51,9 +51,32 @@ class PdfParser implements PdfParserInterface
             $numPage++;
             $text = $page->getText();
             $parsed = explode(',', $text);
+
             $apellidos = trim(preg_replace('/\t+/', '', $parsed[0]));
-            preg_match('/^(.*)$/m', $parsed[1], $matches);
-            $nombre = trim(preg_replace('/\t+/', '', $matches[0]));
+
+            $afterComma = $parsed[1] ?? '';
+
+            // Determinar el formato del PDF para extraer correctamente el nombre.
+            // Formato antiguo: nombre y dirección separados por newline (\n o \r).
+            // Formato nuevo: nombre y dirección en una sola línea, con el CP (5 dígitos) tras el nombre.
+            $hasNewline = (strpos($afterComma, "\n") !== false || strpos($afterComma, "\r") !== false);
+
+            if ($hasNewline) {
+                // Formato antiguo: el nombre está en la primera línea antes del newline.
+                // Los tabs dentro del nombre deben eliminarse (ej: "J\tOHN" → "JOHN").
+                preg_match('/^(.*)$/m', $afterComma, $matches);
+                $nombre = trim(preg_replace('/\t+/', '', $matches[0]));
+            } else {
+                // Formato nuevo: extraer todo antes del primer código postal de 5 dígitos.
+                // Los espacios son significativos (nombres compuestos: "MARIA DEL CARMEN").
+                if (preg_match('/^(.*?)\s*\d{5}\b/', $afterComma, $matches)) {
+                    $nombre = trim(preg_replace('/\s+/', ' ', $matches[1]));
+                } else {
+                    // Fallback último recurso: usar explode por tabulaciones.
+                    $parts = explode("\t", trim($afterComma));
+                    $nombre = trim($parts[0]);
+                }
+            }
             $empleado = $this->empleadoRepository->findOneBy(['nombre' => $nombre, 'apellidos' => $apellidos]);
 
             $nombre = ucwords(strtolower($nombre));

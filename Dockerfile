@@ -9,6 +9,7 @@ ARG XDEBUG_INI=/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 RUN echo "xdebug.remote_enable = on" >> ${XDEBUG_INI}
 RUN echo "xdebug.idekey = phpstorm" >> ${XDEBUG_INI}
 RUN echo "xdebug.remote_host = docker.for.mac.localhost" >> ${XDEBUG_INI}
+RUN echo "xdebug.remote_autostart = on" >> ${XDEBUG_INI}
 
 # intl
 RUN apt-get -y update \
