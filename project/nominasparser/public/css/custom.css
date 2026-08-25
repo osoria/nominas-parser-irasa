@@ -1,3 +1,10 @@
+.contact100-logo {
+    display: block;
+    margin: 0 auto 32px auto;
+    max-width: 100%;
+    height: auto;
+}
+
 input.input100 {
     padding-top: 16px;
 }
