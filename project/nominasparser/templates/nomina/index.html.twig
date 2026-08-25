@@ -22,6 +22,11 @@
                     <span class="label-input100">Modo de envío</span>
                     {{ form_row(form.mode) }}
 
+                    <div id="custom_email_div" class="wrap-input100 rs1-wrap-input100" style="margin-top: 10px; display: none;">
+                        <span class="label-input100">Email destino</span>
+                        {{ form_row(form.custom_email, {'attr': {'class': 'input100 input100-email-custom'}}) }}
+                    </div>
+
                     <div class="employes">
                         {% for empleado in empleados %}
                             <input type="checkbox" name="empleado[]" value="{{ empleado.id }}" />
@@ -49,5 +54,27 @@
         </div>
 
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var modeSelect = document.getElementById('nomina_pdf_mode');
+            var customEmailDiv = document.getElementById('custom_email_div');
+
+            function toggleCustomEmail() {
+                if (modeSelect && customEmailDiv) {
+                    if (modeSelect.value === 'custom') {
+                        customEmailDiv.style.display = 'block';
+                    } else {
+                        customEmailDiv.style.display = 'none';
+                    }
+                }
+            }
+
+            if (modeSelect) {
+                modeSelect.addEventListener('change', toggleCustomEmail);
+                toggleCustomEmail();
+            }
+        });
+    </script>
 
 {% endblock %}

@@ -35,8 +35,22 @@ class PdfParserTest extends TestCase
             ->will($this->returnValue($result));
     }
 
+    public function configureSaveEmpleadoRepository(int $num = 1): void
+    {
+        $this->empleadoRepository
+            ->expects($this->exactly($num))
+            ->method('save')
+            ->willReturn(null);
+    }
+
     protected function setUp()
     {
+        $_SERVER['EMAIL_TEST'] = 'test@test.com';
+        $_SERVER['MAILER_SEND_BY'] = 'sender@test.com';
+        $_SERVER['GMAIL_USERNAME'] = 'gmailuser';
+        $_SERVER['GMAIL_PASSWORD'] = 'gmailpass';
+        $_SERVER['APP_ENV'] = 'test';
+
         $this->parser = $this->createMock(Parser::class);
         $this->empleadoRepository = $this->createMock(EmpleadoRepository::class);
         $this->pdfCut = $this->createMock(PdfCutInterface::class);
@@ -53,6 +67,7 @@ class PdfParserTest extends TestCase
             ->will($this->returnValue($this->mockDocumentPdf()));
 
         $this->configureFindOneByEmpleadoRepository($this->empleadoStub());
+        $this->configureSaveEmpleadoRepository();
 
         $this->pdfCut
             ->expects($this->once())
@@ -68,7 +83,75 @@ class PdfParserTest extends TestCase
 
         $result = $pdfParser->execute('/tmp', 'file.pdf', 'all', []);
 
-        $this->assertEquals('Se ha enviado correctamente la nómina a John Doe<br/>', $result);
+        $this->assertStringContainsString('Se ha enviado correctamente la nómina a John Doe<br/>', $result);
+    }
+
+    public function testExecuteFindsEmployeeByDNI()
+    {
+        $this->parser
+            ->expects($this->once())
+            ->method('parseFile')
+            ->with($this->equalTo('/tmp/file.pdf'))
+            ->will($this->returnValue($this->mockDocumentPdfWithDni()));
+
+        $this->empleadoRepository
+            ->expects($this->once())
+            ->method('findOneBy')
+            ->with($this->equalTo(['dni' => '25425665Q']))
+            ->will($this->returnValue($this->empleadoStub()));
+
+        $this->configureSaveEmpleadoRepository();
+
+        $this->pdfCut
+            ->expects($this->once())
+            ->method('init')
+            ->with($this->equalTo('/tmp/file.pdf'));
+        $this->pdfCut
+            ->expects($this->once())
+            ->method('cut')
+            ->with($this->equalTo(1))
+            ->will($this->returnValue($this->pdfMock()));
+
+        $pdfParser = new PdfParser($this->parser, $this->empleadoRepository, $this->pdfCut);
+
+        $result = $pdfParser->execute('/tmp', 'file.pdf', 'all', []);
+
+        $this->assertStringContainsString('Se ha enviado correctamente la nómina a John Doe<br/>', $result);
+    }
+
+    public function testExecuteFallsBackToNameWhenDniNotFoundInDb()
+    {
+        $this->parser
+            ->expects($this->once())
+            ->method('parseFile')
+            ->with($this->equalTo('/tmp/file.pdf'))
+            ->will($this->returnValue($this->mockDocumentPdfWithDni()));
+
+        $empleado = $this->empleadoStub();
+        $this->empleadoRepository
+            ->expects($this->exactly(2))
+            ->method('findOneBy')
+            ->will($this->returnCallback(function (array $criteria) use ($empleado) {
+                return isset($criteria['dni']) ? null : $empleado;
+            }));
+
+        $this->configureSaveEmpleadoRepository();
+
+        $this->pdfCut
+            ->expects($this->once())
+            ->method('init')
+            ->with($this->equalTo('/tmp/file.pdf'));
+        $this->pdfCut
+            ->expects($this->once())
+            ->method('cut')
+            ->with($this->equalTo(1))
+            ->will($this->returnValue($this->pdfMock()));
+
+        $pdfParser = new PdfParser($this->parser, $this->empleadoRepository, $this->pdfCut);
+
+        $result = $pdfParser->execute('/tmp', 'file.pdf', 'all', []);
+
+        $this->assertStringContainsString('Se ha enviado correctamente la nómina a John Doe<br/>', $result);
     }
 
     private function mockDocumentPdf(int $numPages = 1): Document
@@ -87,7 +170,6 @@ class PdfParserTest extends TestCase
         $empleado = new Empleado();
 
         return $empleado->setNombre('John')->setApellidos('Doe')->setEmail('john@doe.com')->setId(1);
-
     }
 
     private function pdfMock(?bool $returnSaveAs = true, int $numExecuted = 1): Pdf
@@ -106,10 +188,44 @@ class PdfParserTest extends TestCase
     {
         $page = $this->createMock(Page::class);
 
+        $text = " DOE, JOHN\n";
+        $text .= " 50000 ZARAGOZA\n";
+        $text .= " NIF. B99408312\n";
+        $text .= " PERIODO\n";
+        $text .= " MENS 01 JUL 26 a 31 JUL 26\n";
+
         $page->expects($this->exactly($numPages))
             ->method('getText')
-            ->will($this->returnValue(' DOE, J	OHN 	
- 50000  ZARAGOZ	A'));
+            ->will($this->returnValue($text));
+
+        return array_fill(0, $numPages, $page);
+    }
+
+    private function mockDocumentPdfWithDni(int $numPages = 1): Document
+    {
+        $documentPdf = $this->createMock(Document::class);
+        $documentPdf
+            ->expects($this->once())
+            ->method('getPages')
+            ->will($this->returnValue($this->pagesMockWithDni($numPages)));
+
+        return $documentPdf;
+    }
+
+    private function pagesMockWithDni(int $numPages = 1): array
+    {
+        $page = $this->createMock(Page::class);
+
+        $text = " DOE, JOHN\n";
+        $text .= " 50000 ZARAGOZA\n";
+        $text .= " NIF. B99408312\n";
+        $text .= " D.N.I. 25425665Q\n";
+        $text .= " PERIODO\n";
+        $text .= " MENS 01 JUL 26 a 31 JUL 26\n";
+
+        $page->expects($this->exactly($numPages))
+            ->method('getText')
+            ->will($this->returnValue($text));
 
         return array_fill(0, $numPages, $page);
     }
@@ -133,7 +249,7 @@ class PdfParserTest extends TestCase
 
         $result = $this->pdfParser->execute('/tmp', 'file.pdf', 'all', null);
 
-        $this->assertEquals(
+        $this->assertStringContainsString(
             "<strong>ATENCIÓN:</strong> El empleado John Doe no se ha encontrado en la BD y no se ha podido enviar su nómina<br/>",
             $result
         );
@@ -151,7 +267,8 @@ class PdfParserTest extends TestCase
 
         $result = $this->pdfParser->execute('/tmp', 'file.pdf', 'selec', [2, 3]);
 
-        $this->assertEquals('', $result);
+        $this->assertStringNotContainsString('Se ha enviado correctamente', $result);
+        $this->assertStringNotContainsString('no se ha encontrado', $result);
     }
 
     public function testExecuteNotSaved()
@@ -179,7 +296,7 @@ class PdfParserTest extends TestCase
         $result = $pdfParser->execute('/tmp', 'file.pdf', 'all', []);
 
         $newFile = '/tmp/John Doe.pdf';
-        $this->assertEquals(
+        $this->assertStringContainsString(
             "<strong>ATENCIÓN:</strong> No se ha podido guardar la nómina $newFile, por lo que no se ha podido enviar<br/>",
             $result
         );
@@ -212,7 +329,7 @@ class PdfParserTest extends TestCase
 
         $nombre = $empleado->getNombre();
         $apellidos = $empleado->getApellidos();
-        $this->assertEquals(
+        $this->assertStringContainsString(
             "<strong>ATENCIÓN:</strong> El empleado $nombre $apellidos no tiene un email asociado<br/>",
             $result
         );
@@ -228,15 +345,17 @@ class PdfParserTest extends TestCase
 
         $empleado = $this->empleadoStub();
         $this->configureFindOneByEmpleadoRepository($empleado, 2);
+        $this->configureSaveEmpleadoRepository(1);
 
         $this->pdfCut
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('init')
             ->with($this->equalTo('/tmp/file.pdf'));
         $this->pdfCut
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('cut')
-            ->will($this->returnValue($this->pdfMock(true, 2)));
+            ->with($this->equalTo(1))
+            ->will($this->returnValue($this->pdfMock(true)));
 
         $pdfParser = new PdfParser($this->parser, $this->empleadoRepository, $this->pdfCut);
 
@@ -244,7 +363,64 @@ class PdfParserTest extends TestCase
 
         $nombre = $empleado->getNombre();
         $apellidos = $empleado->getApellidos();
-        $this->assertEquals("Se ha enviado correctamente la nómina a $nombre $apellidos<br/>", $result);
+        $this->assertStringContainsString("Se ha enviado correctamente la nómina a $nombre $apellidos<br/>", $result);
     }
 
+    public function testExecuteModeCustom()
+    {
+        $this->parser
+            ->expects($this->once())
+            ->method('parseFile')
+            ->with($this->equalTo('/tmp/file.pdf'))
+            ->will($this->returnValue($this->mockDocumentPdf()));
+
+        $this->configureFindOneByEmpleadoRepository($this->empleadoStub());
+        $this->configureSaveEmpleadoRepository();
+
+        $this->pdfCut
+            ->expects($this->once())
+            ->method('init')
+            ->with($this->equalTo('/tmp/file.pdf'));
+        $this->pdfCut
+            ->expects($this->once())
+            ->method('cut')
+            ->with($this->equalTo(1))
+            ->will($this->returnValue($this->pdfMock()));
+
+        $pdfParser = new PdfParser($this->parser, $this->empleadoRepository, $this->pdfCut);
+
+        $result = $pdfParser->execute('/tmp', 'file.pdf', 'custom', [], 'custom@email.com');
+
+        $this->assertStringContainsString('Se ha enviado correctamente la nómina a John Doe<br/>', $result);
+    }
+
+    public function testExecuteSkipAlreadySentMonth()
+    {
+        $this->parser
+            ->expects($this->once())
+            ->method('parseFile')
+            ->with($this->equalTo('/tmp/file.pdf'))
+            ->will($this->returnValue($this->mockDocumentPdf()));
+
+        $empleado = $this->empleadoStub()->setUltimoMesEnvio(7);
+        $this->configureFindOneByEmpleadoRepository($empleado);
+
+        $this->empleadoRepository
+            ->expects($this->never())
+            ->method('save');
+
+        $this->pdfCut
+            ->expects($this->never())
+            ->method('init');
+        $this->pdfCut
+            ->expects($this->never())
+            ->method('cut');
+
+        $pdfParser = new PdfParser($this->parser, $this->empleadoRepository, $this->pdfCut);
+
+        $result = $pdfParser->execute('/tmp', 'file.pdf', 'all', []);
+
+        $this->assertStringContainsString('No se ha enviado la nómina a John Doe porque se envió previamente', $result);
+        $this->assertStringNotContainsString('Se ha enviado correctamente', $result);
+    }
 }

@@ -1,7 +1,3 @@
-
-
-
-
 /*//////////////////////////////////////////////////////////////////
 [ FONT ]*/
 
@@ -215,7 +211,8 @@ iframe {
   font-size: 20px;
   color: #686868;
   line-height: 1.2;
-  padding: 0 28px;
+  padding: 0 28px 0 28px;
+  padding-top: 0;
 
   -webkit-transition: all 0.4s;
   -o-transition: all 0.4s;
@@ -240,6 +237,14 @@ textarea.input100 {
 
 .input100:focus {
   background: #e6e6e6;
+}
+
+/* Input email personalizado */
+.input100-email-custom {
+  width: 250px !important;
+  height: 40px !important;
+  font-size: 18px !important;
+  padding: 0 12px !important;
 }
 
 /*------------------------------------------------------------------
@@ -410,7 +415,3 @@ textarea.input100 {
   text-align: center;
   padding: 40px 0 10px 0;
 }
-
-
-
-

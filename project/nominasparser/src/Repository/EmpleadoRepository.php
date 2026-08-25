@@ -19,32 +19,27 @@ class EmpleadoRepository extends ServiceEntityRepository
         parent::__construct($registry, Empleado::class);
     }
 
-    // /**
-    //  * @return Empleado[] Returns an array of Empleado objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function save(Empleado $empleado): void
     {
-        return $this->createQueryBuilder('e')
-            ->andWhere('e.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('e.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+        $this->_em->persist($empleado);
+        $this->_em->flush();
     }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?Empleado
+    /**
+     * Busca un empleado por apellidos exactos y nombre que contenga el texto dado.
+     * Fallback cuando el PDF trunca el nombre (ej: "JOSE MIGUE" vs "JOSE MIGUEL").
+     */
+    public function findOneByApellidosAndNombreContains(string $apellidos, string $nombre): ?Empleado
     {
-        return $this->createQueryBuilder('e')
-            ->andWhere('e.exampleField = :val')
-            ->setParameter('val', $value)
+        $result = $this->createQueryBuilder('e')
+            ->andWhere('e.apellidos = :apellidos')
+            ->andWhere('e.nombre LIKE :nombre')
+            ->setParameter('apellidos', $apellidos)
+            ->setParameter('nombre', '%' . $nombre . '%')
+            ->setMaxResults(1)
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getResult();
+
+        return $result[0] ?? null;
     }
-    */
 }
