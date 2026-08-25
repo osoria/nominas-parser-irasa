@@ -27,6 +27,6 @@ services:
       - 80
     ports:
       - 8088:80
-      - 9001:9000
+      - 9003:9003
     links:
       - miservicio_mysql

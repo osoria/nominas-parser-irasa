@@ -32,6 +32,16 @@ class Empleado
      */
     private $email;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $ultimo_mes_envio;
+
+    /**
+     * @ORM\Column(type="string", length=20, nullable=true)
+     */
+    private $dni;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -76,6 +86,30 @@ class Empleado
     public function setEmail(?string $email): self
     {
         $this->email = $email;
+
+        return $this;
+    }
+
+    public function getUltimoMesEnvio(): ?int
+    {
+        return $this->ultimo_mes_envio;
+    }
+
+    public function setUltimoMesEnvio(?int $ultimo_mes_envio): self
+    {
+        $this->ultimo_mes_envio = $ultimo_mes_envio;
+
+        return $this;
+    }
+
+    public function getDni(): ?string
+    {
+        return $this->dni;
+    }
+
+    public function setDni(?string $dni): self
+    {
+        $this->dni = $dni;
 
         return $this;
     }

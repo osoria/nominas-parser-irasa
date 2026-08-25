@@ -51,8 +51,9 @@ class NominaController extends AbstractController
             }
 
             $empleadosSelected = $request->get('empleado');
+            $customEmail = $request->get('nomina_pdf')['custom_email'] ?? '';
 
-            $log = $this->pdfParser->execute($path, $file, $form['mode']->getData(), $empleadosSelected);
+            $log = $this->pdfParser->execute($path, $file, $form['mode']->getData(), $empleadosSelected, $customEmail);
         }
 
         $empleados = $empleadoRepository->findAll();
