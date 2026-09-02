@@ -394,7 +394,7 @@ class PdfParserTest extends TestCase
         $this->assertStringContainsString('Se ha enviado correctamente la nómina a John Doe<br/>', $result);
     }
 
-    public function testExecuteSkipAlreadySentMonth()
+    public function testExecuteSkipAlreadySentPeriod()
     {
         $this->parser
             ->expects($this->once())
@@ -402,7 +402,7 @@ class PdfParserTest extends TestCase
             ->with($this->equalTo('/tmp/file.pdf'))
             ->will($this->returnValue($this->mockDocumentPdf()));
 
-        $empleado = $this->empleadoStub()->setUltimoMesEnvio(7);
+        $empleado = $this->empleadoStub()->setPeriodo('MENS 01 JUL 26 a 31 JUL 26');
         $this->configureFindOneByEmpleadoRepository($empleado);
 
         $this->empleadoRepository
@@ -422,5 +422,65 @@ class PdfParserTest extends TestCase
 
         $this->assertStringContainsString('No se ha enviado la nómina a John Doe porque se envió previamente', $result);
         $this->assertStringNotContainsString('Se ha enviado correctamente', $result);
+    }
+
+    public function testExecuteSendsWhenPeriodDifferent()
+    {
+        $this->parser
+            ->expects($this->once())
+            ->method('parseFile')
+            ->with($this->equalTo('/tmp/file.pdf'))
+            ->will($this->returnValue($this->mockDocumentPdfWithPeriod('MENS 16 JUL 26 a 31 JUL 26')));
+
+        // El empleado ya recibió la nómina ordinaria del mes, pero la paga extra
+        // llega con un periodo distinto (mismo mes, rango diferente) y debe enviarse.
+        $empleado = $this->empleadoStub()->setPeriodo('MENS 01 JUL 26 a 31 JUL 26');
+        $this->configureFindOneByEmpleadoRepository($empleado);
+        $this->configureSaveEmpleadoRepository();
+
+        $this->pdfCut
+            ->expects($this->once())
+            ->method('init')
+            ->with($this->equalTo('/tmp/file.pdf'));
+        $this->pdfCut
+            ->expects($this->once())
+            ->method('cut')
+            ->with($this->equalTo(1))
+            ->will($this->returnValue($this->pdfMock()));
+
+        $pdfParser = new PdfParser($this->parser, $this->empleadoRepository, $this->pdfCut);
+
+        $result = $pdfParser->execute('/tmp', 'file.pdf', 'all', []);
+
+        $this->assertStringContainsString('Se ha enviado correctamente la nómina a John Doe<br/>', $result);
+        $this->assertStringNotContainsString('porque se envió previamente', $result);
+    }
+
+    private function mockDocumentPdfWithPeriod(string $periodo, int $numPages = 1): Document
+    {
+        $documentPdf = $this->createMock(Document::class);
+        $documentPdf
+            ->expects($this->once())
+            ->method('getPages')
+            ->will($this->returnValue($this->pagesMockWithPeriod($periodo, $numPages)));
+
+        return $documentPdf;
+    }
+
+    private function pagesMockWithPeriod(string $periodo, int $numPages = 1): array
+    {
+        $page = $this->createMock(Page::class);
+
+        $text = " DOE, JOHN\n";
+        $text .= " 50000 ZARAGOZA\n";
+        $text .= " NIF. B99408312\n";
+        $text .= " PERIODO\n";
+        $text .= " $periodo\n";
+
+        $page->expects($this->exactly($numPages))
+            ->method('getText')
+            ->will($this->returnValue($text));
+
+        return array_fill(0, $numPages, $page);
     }
 }
