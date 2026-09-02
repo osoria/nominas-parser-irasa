@@ -33,9 +33,9 @@ class Empleado
     private $email;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="string", length=100, nullable=true)
      */
-    private $ultimo_mes_envio;
+    private $periodo;
 
     /**
      * @ORM\Column(type="string", length=20, nullable=true)
@@ -90,14 +90,14 @@ class Empleado
         return $this;
     }
 
-    public function getUltimoMesEnvio(): ?int
+    public function getPeriodo(): ?string
     {
-        return $this->ultimo_mes_envio;
+        return $this->periodo;
     }
 
-    public function setUltimoMesEnvio(?int $ultimo_mes_envio): self
+    public function setPeriodo(?string $periodo): self
     {
-        $this->ultimo_mes_envio = $ultimo_mes_envio;
+        $this->periodo = $periodo;
 
         return $this;
     }

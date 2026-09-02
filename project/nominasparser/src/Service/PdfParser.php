@@ -72,7 +72,7 @@ class PdfParser implements PdfParserInterface
             return;
         }
 
-        $mesNumero = $this->extractMes($text);
+        $periodo = $this->extractPeriodo($text);
 
         $nombreDisplay = ucwords(strtolower($nombre));
         $apellidosDisplay = ucwords(strtolower($apellidos));
@@ -96,7 +96,7 @@ class PdfParser implements PdfParserInterface
             return;
         }
         if ($mode == 'selec' && !in_array($empleado->getId(), $empleadosSelected)) return;
-        if ($mesNumero !== null && $empleado->getUltimoMesEnvio() === $mesNumero) {
+        if ($periodo !== null && $empleado->getPeriodo() === $periodo) {
             $messagesPost[] = "No se ha enviado la nómina a $nombreDisplay $apellidosDisplay porque se envió previamente";
             return;
         }
@@ -131,8 +131,8 @@ class PdfParser implements PdfParserInterface
 
         $this->sendEmail($emailToSend, $newFile, $nombreDisplay);
         $numSended++;
-        if ($mesNumero !== null) {
-            $empleado->setUltimoMesEnvio($mesNumero);
+        if ($periodo !== null) {
+            $empleado->setPeriodo($periodo);
             $this->empleadoRepository->save($empleado);
         }
         $log .= "Se ha enviado correctamente la nómina a $nombreDisplay $apellidosDisplay<br/>";
@@ -192,12 +192,19 @@ class PdfParser implements PdfParserInterface
         return null;
     }
 
-    private function extractMes(string $text): ?int
+    /**
+     * Extrae el periodo completo de la nómina del texto de la página.
+     *
+     * Formato esperado: "MENS 01 AGO 26 a 31 AGO 26".
+     * Devuelve el texto normalizado (espacios colapsados y sin espacios en los
+     * extremos) para poder compararlo de forma fiable con el periodo guardado
+     * en un envío anterior. Así, la paga extra (con un periodo distinto aunque
+     * coincida el mes) no se bloquea por haber enviado ya la nómina ordinaria.
+     */
+    private function extractPeriodo(string $text): ?string
     {
-        if (preg_match('/MENS\s+\d{2}\s+(\w{3})\s+\d{2}/i', $text, $m)) {
-            $meses = ['ene'=>1,'feb'=>2,'mar'=>3,'abr'=>4,'may'=>5,'jun'=>6,
-                       'jul'=>7,'ago'=>8,'sep'=>9,'oct'=>10,'nov'=>11,'dic'=>12];
-            return $meses[strtolower($m[1])] ?? null;
+        if (preg_match('/MENS\s+\d{2}\s+[A-Z]{3}\s+\d{2}\s+a\s+\d{2}\s+[A-Z]{3}\s+\d{2}/i', $text, $m)) {
+            return preg_replace('/\s+/', ' ', trim($m[0]));
         }
         return null;
     }
