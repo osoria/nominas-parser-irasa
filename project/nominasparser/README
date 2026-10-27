@@ -1,4 +1,74 @@
-- Los tests unitarios se ejecutan:
-./vendor/bin/simple-phpunit --coverage-clover 'reports/clover.xml'
+# Nominas Parser
 
-Desde PHPStorm, Tools -> Show Code Coverage Data, para ver el coverage
+Aplicación Symfony 6.4 LTS sobre PHP 8.4 (Docker).
+
+## Despliegue en producción
+
+`vendor/` **NO está versionado** (está en `.gitignore`) y el `Dockerfile` no lo
+genera, así que en cada despliegue hay que instalar las dependencias una vez
+subido el código.
+
+### 1. Instalar dependencias PHP
+
+Desde la raíz del repositorio (donde está `docker-compose.yml`), usando el
+propio contenedor PHP 8.4 (que ya trae Composer):
+
+```bash
+docker compose run --rm --no-deps --entrypoint composer \
+  miservicio_php install --no-dev --optimize-autoloader --prefer-dist --no-interaction \
+  --working-dir=/var/www/html/nominasparser
+```
+
+Si el servidor tiene PHP 8.4 + Composer instalados, también puedes hacerlo
+directamente en el host:
+
+```bash
+cd project/nominasparser
+composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+```
+
+### 2. Entorno de producción
+
+Asegúrate de usar el entorno `prod` (por defecto `.env` trae `APP_ENV=dev`).
+Crea un `project/nominasparser/.env.local` con:
+
+```dotenv
+APP_ENV=prod
+APP_DEBUG=0
+```
+
+### 3. Compilar imagen y levantar
+
+```bash
+docker compose up -d --build
+```
+
+### 4. Migraciones de base de datos
+
+Con los contenedores levantados (espera unos segundos a que MySQL esté listo),
+aplica las migraciones pendientes:
+
+```bash
+docker compose exec miservicio_php \
+  php /var/www/html/nominasparser/bin/console doctrine:migrations:migrate --no-interaction
+```
+
+El comando es idempotente: solo ejecuta las migraciones que aún no se han
+aplicado. Con una base de datos nueva crea todo el esquema.
+
+Opcional, solo para una base de datos vacía (¡borra y recarga los datos!):
+
+```bash
+docker compose exec miservicio_php \
+  php /var/www/html/nominasparser/bin/console doctrine:fixtures:load --no-interaction
+```
+
+## Tests
+
+Los tests unitarios se ejecutan con:
+
+```bash
+./vendor/bin/simple-phpunit --coverage-clover 'reports/clover.xml'
+```
+
+Desde PHPStorm, Tools -> Show Code Coverage Data, para ver el coverage.

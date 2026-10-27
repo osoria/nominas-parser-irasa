@@ -1,5 +1,0 @@
-easy_admin:
-    list:
-        max_results: 30
-    entities:
-        - App\Entity\Empleado

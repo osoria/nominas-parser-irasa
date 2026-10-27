@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\App\Service;
+namespace App\Tests\Service;
 
 use App\Entity\Empleado;
 use App\Repository\EmpleadoRepository;
@@ -10,7 +10,7 @@ use mikehaertl\pdftk\Pdf;
 use Smalot\PdfParser\Document;
 use Smalot\PdfParser\Page;
 use Smalot\PdfParser\Parser;
-use Symfony\Bundle\FrameworkBundle\Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 class PdfParserTest extends TestCase
 {
@@ -39,11 +39,10 @@ class PdfParserTest extends TestCase
     {
         $this->empleadoRepository
             ->expects($this->exactly($num))
-            ->method('save')
-            ->willReturn(null);
+            ->method('save');
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $_SERVER['EMAIL_TEST'] = 'test@test.com';
         $_SERVER['MAILER_SEND_BY'] = 'sender@test.com';
