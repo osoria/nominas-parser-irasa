@@ -4,11 +4,11 @@ namespace App\DataFixtures;
 
 use App\Entity\Empleado;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 class EmpleadoFixtures extends Fixture
 {
-    public function load(ObjectManager $manager)
+    public function load(ObjectManager $manager): void
     {
         $empleado = new Empleado();
         $empleado->setNombre(strtoupper('Carmen'));

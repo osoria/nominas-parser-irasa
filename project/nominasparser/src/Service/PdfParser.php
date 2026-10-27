@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Repository\EmpleadoRepository;
 use Smalot\PdfParser\Parser;
-use Symfony\Component\Mailer\Bridge\Google\Smtp\GmailTransport;
+use Symfony\Component\Mailer\Bridge\Google\Transport\GmailSmtpTransport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
 
@@ -216,7 +216,7 @@ class PdfParser implements PdfParserInterface
             ->subject('Su nómina del último mes')->attachFromPath($newFile)
             ->text("Hola {$nombre}, le adjuntamos su última nómina")
             ->html("Hola $nombre,<br/><br/>Le adjuntamos su última nómina.<br/><br/>Saludos,");
-        (new Mailer(new GmailTransport($_SERVER['GMAIL_USERNAME'], $_SERVER['GMAIL_PASSWORD'])))->send($email);
+        (new Mailer(new GmailSmtpTransport($_SERVER['GMAIL_USERNAME'], $_SERVER['GMAIL_PASSWORD'])))->send($email);
     }
 
     private function calculateEmailToSend(string $email, string $mode, string $customEmail = ''): string

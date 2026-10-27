@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class NominaController extends AbstractController
 {
@@ -32,9 +32,7 @@ class NominaController extends AbstractController
         $this->appKernel = $appKernel;
     }
 
-    /**
-     * @Route("/", name="new")
-     */
+    #[Route('/', name: 'new')]
     public function index(Request $request, EmpleadoRepository $empleadoRepository)
     {
         $form = $this->createForm(NominaPdfType::class);
