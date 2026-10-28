@@ -21,8 +21,8 @@ class EmpleadoRepository extends ServiceEntityRepository
 
     public function save(Empleado $empleado): void
     {
-        $this->_em->persist($empleado);
-        $this->_em->flush();
+        $this->getEntityManager()->persist($empleado);
+        $this->getEntityManager()->flush();
     }
 
     /**
