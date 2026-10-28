@@ -2,45 +2,33 @@
 
 namespace App\Entity;
 
+use App\Repository\EmpleadoRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\EmpleadoRepository")
- * @ORM\Table(indexes={@ORM\Index(columns={"apellidos"})})
- */
+#[ORM\Entity(repositoryClass: EmpleadoRepository::class)]
+#[ORM\Table(name: 'empleado')]
+#[ORM\Index(columns: ['apellidos'], name: 'IDX_D9D9BF52D9A2AA6D')]
 class Empleado
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=100)
-     */
-    private $apellidos;
+    #[ORM\Column(type: 'string', length: 100)]
+    private ?string $apellidos = null;
 
-    /**
-     * @ORM\Column(type="string", length=100)
-     */
-    private $nombre;
+    #[ORM\Column(type: 'string', length: 100)]
+    private ?string $nombre = null;
 
-    /**
-     * @ORM\Column(type="string", length=100, nullable=true)
-     */
-    private $email;
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $email = null;
 
-    /**
-     * @ORM\Column(type="string", length=100, nullable=true)
-     */
-    private $periodo;
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $periodo = null;
 
-    /**
-     * @ORM\Column(type="string", length=20, nullable=true)
-     */
-    private $dni;
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $dni = null;
 
     public function getId(): ?int
     {
@@ -112,5 +100,10 @@ class Empleado
         $this->dni = $dni;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return ($this->apellidos ?? '') . ', ' . ($this->nombre ?? '');
     }
 }

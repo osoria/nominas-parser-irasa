@@ -20,7 +20,7 @@ final class Version20260731000000 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // La columna puede existir ya si el esquema se sincronizó previamente desde la entidad
-        $columns = $this->connection->getSchemaManager()->listTableColumns('empleado');
+        $columns = $this->connection->createSchemaManager()->listTableColumns('empleado');
         if (!isset($columns['dni'])) {
             $this->addSql('ALTER TABLE empleado ADD dni VARCHAR(20) DEFAULT NULL');
         }

@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Empleado;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Empleado|null find($id, $lockMode = null, $lockVersion = null)
@@ -21,8 +21,8 @@ class EmpleadoRepository extends ServiceEntityRepository
 
     public function save(Empleado $empleado): void
     {
-        $this->_em->persist($empleado);
-        $this->_em->flush();
+        $this->getEntityManager()->persist($empleado);
+        $this->getEntityManager()->flush();
     }
 
     /**
