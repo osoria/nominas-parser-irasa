@@ -27,7 +27,17 @@ cd project/nominasparser
 composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
 ```
 
-### 2. Entorno de producción
+### 2. Publicar assets de los bundles
+
+EasyAdmin publica su CSS/JS en `public/bundles/` (directorio que está en
+`.gitignore`), así que hay que instalarlos en cada despliegue:
+
+```bash
+docker compose run --rm --no-deps miservicio_php \
+  php /var/www/html/nominasparser/bin/console assets:install public
+```
+
+### 3. Entorno de producción
 
 Asegúrate de usar el entorno `prod` (por defecto `.env` trae `APP_ENV=dev`).
 Crea un `project/nominasparser/.env.local` con:
@@ -37,13 +47,13 @@ APP_ENV=prod
 APP_DEBUG=0
 ```
 
-### 3. Compilar imagen y levantar
+### 4. Compilar imagen y levantar
 
 ```bash
 docker compose up -d --build
 ```
 
-### 4. Migraciones de base de datos
+### 5. Migraciones de base de datos
 
 Con los contenedores levantados (espera unos segundos a que MySQL esté listo),
 aplica las migraciones pendientes:
